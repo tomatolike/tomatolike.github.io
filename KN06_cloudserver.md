@@ -22,7 +22,7 @@ scp remote_username@remote_ip:remote_folder local_file
 + tar命令
 
 ```shell
-:<<eof
+: '
 -c: 建立压缩档案
 -x：解压
 -t：查看内容
@@ -33,6 +33,6 @@ scp remote_username@remote_ip:remote_folder local_file
 -Z：有compress属性的
 -v：显示所有过程
 -O：将文件解开到标准输出
-eof
+'
 tar -xzvf file.tar.gz #解压tar.gz包
 ```
