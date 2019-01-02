@@ -7,3 +7,7 @@
 + As long as a majority of the servers are available, the ZooKeeper service will be available.
 + Znodes maintain a stat structure that includes version numbers for data changes, ACL changes, and timestamps, to allow cache validations and coordinated updates.
 + Clients can set a watch on a znodes. A watch will be triggered and removed when the znode changes.
+
+### Build/Setup
++ download linkage: [ZooKeeper](http://mirrors.shu.edu.cn/apache/zookeeper/)
++ 
