@@ -135,6 +135,7 @@ create()函数应该被构造函数调用。
 setAnchorPoint()，传入一个矢量，说明的是对象本身的原点位置。Vec2(0,0)意味着左下角，Vec2(1,1)意味着右上角。  
 setPosition()，传入一个x,y坐标，说明的是对象本身原点在其父节点坐标系（父节点坐标系的原点依然在左下角，与anchor的位置无关）中的位置。  
 通过 Vec2 worldPosition = sprite1->convertToWorldSpace(sprite2->getPosition()) 可以转化为相对view坐标系的位置。注意，这里前面的sprite1应该是sprite2的父节点才对。  
+按理来说，子节点会跟随父节点移动。**但是这个关系在Layer和其子节点之间似乎不奏效。**我怀疑Layer的setPostion()设置的是mainCamera的位置。而且Camera的坐标，其Anchor点与view的原点相同，但是**其遵循的坐标轴和view的坐标轴是相反的**！
 
 ### 交互
 + 单点触摸
