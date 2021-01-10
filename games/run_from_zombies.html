@@ -5,17 +5,18 @@
     <script>
         var gamemap = new Array(144); //0 path, 1 wall, 2 player, 3 zombie, 4 moving zombie, <0 bluecell
         var mapblocks = new Array(144); //Shape objects
-        let numzombie = 10; //number of zombies
+        let numzombie = 15; //number of zombies
         var player = new Array(2); //(x,y) of the player
         var zombies = new Array(numzombie); //(x,y) of each zombie
         var blocksize = 40; //pix lenth of each block
-        var basex = 100; 
-        var basey = 100;
+        var basex = 200; 
+        var basey = 300;
         var thestage = null;
         var power; //the power of the player
         var button; //restart game button
         var message; 
         var move; //movable steps each round
+        var sleepspeed=500;
 
         function calind(x, y) {
             return (y-1)*12 + (x-1);
@@ -262,7 +263,7 @@
 
         function stage1(){
             move = Math.floor(Math.random()*6)+1;
-            console.log("find blue")
+            // console.log("find blue")
             setbluecells(player[0],player[1],move,power);
             // printmap();
             message.text = "You have "+power.toString()+" power.\nYou can move "+move.toString()+" steps this round.\nClick blue cells to move.";
@@ -281,7 +282,7 @@
         function zombieseeplayer(i){
             var zx = zombies[i][0], zy = zombies[i][1];
             var i,low,high,ok=0,direct=-1;
-            console.log("zombie:",zombies[i][0],zombies[i][1],"player:",player[0],player[1]);
+            // console.log("zombie:",zombies[i][0],zombies[i][1],"player:",player[0],player[1]);
             if(zx == player[0]){
                 ok = 1;
                 if(zy<player[1]){
@@ -289,9 +290,9 @@
                 }else{
                     high=zy;low=player[1];direct=1;
                 }
-                console.log("same column, checking from",low,"to",high);
+                // console.log("same column, checking from",low,"to",high);
                 for(i=low+1;i<high;i++){
-                    console.log("checking",zx,i,gamemap[calind(zx,i)]);
+                    // console.log("checking",zx,i,gamemap[calind(zx,i)]);
                     if(gamemap[calind(zx,i)] == 1 || gamemap[calind(zx,i)] == 3){
                         ok=0;
                         break;
@@ -308,9 +309,9 @@
                 }else{
                     high=zx;low=player[0];direct=2;
                 }
-                console.log("same row, checking from",low,"to",high);
+                // console.log("same row, checking from",low,"to",high);
                 for(i=low+1;i<high;i++){
-                    console.log("checking",i,zy,gamemap[calind(i,zy)]);
+                    // console.log("checking",i,zy,gamemap[calind(i,zy)]);
                     if(gamemap[calind(i,zy)] == 1 || gamemap[calind(i,zy)] == 3){
                         ok-=1;
                         break;
@@ -342,7 +343,6 @@
                 message.text = basicstr+"\n"+addonstr;
                 gamemap[calind(zombies[i][0],zombies[i][1])] = 4;
                 updatemap(thestage);
-                await sleep(200);
                 var zm,j,d,next=0;
                 while(true){
                     d=zombieseeplayer(i);
@@ -369,7 +369,7 @@
                         addonstr += "\nIt is wandering around and roaring!";
                         message.text = basicstr+"\n"+addonstr;
                         updatemap(thestage);
-                        await sleep(200);
+                        await sleep(100);
                         d = Math.floor(Math.random()*4);
                         var nx,ny;
                         for(j=0;j<4;j++){
@@ -383,12 +383,12 @@
                             d=d%4;
                         }
                         updatemap(thestage);
-                        await sleep(1000);
+                        await sleep(sleepspeed);
                     }
                     next+=1;
                 }
                 if(end==1){
-                    addonstr += "\nThe zombie get you! You are dead now.\nClick Start to restart.";
+                    addonstr += "\nThe zombie get you! You are dead now.\nClick REstart to restart.";
                     message.text = basicstr+"\n"+addonstr;
                     break;
                 }
@@ -397,7 +397,7 @@
 
             updatemap(thestage);
             if(end!=1){
-                await sleep(1000);
+                await sleep(sleepspeed);
                 stage1();
                 updatemap(thestage);
             }
@@ -411,28 +411,30 @@
         }
 
         function playermove(x,y) {
-            console.log("move to",x,y);
+            // console.log("move to",x,y);
             if(gamemap[calind(x,y)] < 0){
                 if(gamemap[calind(x,y)] < -10){
                     power -= 5;   
                     gamemap[calind(x,y)]+=10;
                 }
                 power += move + gamemap[calind(x,y)];
+                if(power > 10){
+                    power = 10;
+                }
                 
                 moveplayer(x,y);
 
+                var i;
+                for(i=0;i<144;i++){
+                    if(gamemap[i]<0){
+                        gamemap[i] = 0;
+                    }
+                }
+
                 if(atfinal()){
-                    message.text = "You have escaped! Lucky!\nClick start to restart."
+                    message.text = "You have escaped! Lucky!\nClick REstart to restart."
                     updatemap(thestage);
                 }else{
-                    var i;
-                    for(i=0;i<144;i++){
-                        if(gamemap[i]<0){
-                            gamemap[i] = 0;
-                        }
-                    }
-
-                    // printmap();
                     movezombies();
                 }
             }
@@ -458,15 +460,36 @@
                 stage.addChild(temp);
             }
 
-            button = new createjs.Text("Start","20px Arial", "blue");
-            button.x = basex+550;button.y=basey;
-            // button.graphics.beginFill("DeepSkyBlue").drawRect(basex+300, basey, blocksize*2, blocksize);
-            button.addEventListener("click", refreshmap);
-            stage.addChild(button);
+            title = new createjs.Text("Runaway from Zombies!","30px Arial", "Red");
+            title.x = basex;title.y=basey-250;
+            stage.addChild(title);
+
+            title = new createjs.Text("You (the green block) needs to reach block(12,12) to escape!\nHowever, there are many zombies (orange) moving around!\nEach round, you can take at most randomly 1-6 steps (and at least 1 step).\nThe step you don't take will be stored as power.\nYou can store at most 10 power.\nYou can use 5 power to pass through a zombie.\nWhen the zombies find you, they will try to get you!\nIf you are caught, you are dead.\nTry to escape!","20px Arial", "black");
+            title.x = basex;title.y=basey-210;
+            stage.addChild(title);
+
+            background = new createjs.Shape();
+            background.graphics.beginStroke("red").drawRect(0,0,1920,1080);
+            stage.addChild(background);
 
             message = new createjs.Text("Wait to start","20px Arial", "block");
             message.x = basex+550;message.y=basey+50;
             stage.addChild(message);
+
+            button = new createjs.Text("REstart","20px Arial", "blue");
+            button.x = basex+550;button.y=basey;
+            button.addEventListener("click", refreshmap);
+            stage.addChild(button);
+
+            // button1 = new createjs.Text("REstart(middle)","20px Arial", "blue");
+            // button1.x = basex+750;button1.y=basey;
+            // button1.addEventListener("click", (event) => {sleepspeed=750;message.text="Generating...";numzombie=15;refreshmap();});
+            // stage.addChild(button1);
+
+            // button2 = new createjs.Text("REstart(hard)","20px Arial", "blue");
+            // button2.x = basex+950;button2.y=basey;
+            // button2.addEventListener("click", (event) => {sleepspeed=500;message.text="Generating...";numzombie=20;refreshmap();});
+            // stage.addChild(button2);
 
             for(y=1;y<13;y++){
                 for(x=1;x<13;x++){
@@ -485,7 +508,7 @@
     </script>
 </head>
 <body onload="init();">
-    <canvas id="myCanvas" width="1000" height="1000">
+    <canvas id="myCanvas" width="1920" height="1080">
         alternate content
     </canvas>
 </body>
