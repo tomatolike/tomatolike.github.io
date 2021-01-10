@@ -23,7 +23,7 @@
         }
 
         function calpix(x, y) {
-            return new Array(basex+(x-1)*blocksize, basey+(y-1)*blocksize);
+            return [basex+(x-1)*blocksize, basey+(y-1)*blocksize];
         }
 
         function sleep(ms) {
@@ -77,16 +77,16 @@
 
         function dire(x,y,d){
             if(d==0){
-                return new Array(x+1,y);
+                return [x+1,y];
             }
             if(d==1){
-                return new Array(x,y-1);
+                return [x,y-1];
             }
             if(d==2){
-                return new Array(x-1,y);
+                return [x-1,y];
             }
             if(d==3){
-                return new Array(x,y+1);
+                return [x,y+1];
             }
         }
 
@@ -137,6 +137,44 @@
             return true;
         }
 
+        function research(x, y) {
+            if(gamemap[calind(x,y)] == 0){
+                return true;
+            }
+            var d = Math.floor(Math.random()*4);
+            if(!isok(dire(x,y,d)[0],dire(x,y,d)[1])){
+                if(research(dire(x,y,d)[0],dire(x,y,d)[1])){
+                    gamemap[calind(x,y)] = 0;
+                    return true;
+                }
+            }
+            d += 1;
+            d = d%4;
+            if(!isok(dire(x,y,d)[0],dire(x,y,d)[1])){
+                if(research(dire(x,y,d)[0],dire(x,y,d)[1])){
+                    gamemap[calind(x,y)] = 0;
+                    return true;
+                }
+            }
+            d += 1;
+            d = d%4;
+            if(!isok(dire(x,y,d)[0],dire(x,y,d)[1])){
+                if(research(dire(x,y,d)[0],dire(x,y,d)[1])){
+                    gamemap[calind(x,y)] = 0;
+                    return true;
+                }
+            }
+            d += 1;
+            d = d%4;
+            if(!isok(dire(x,y,d)[0],dire(x,y,d)[1])){
+                if(research(dire(x,y,d)[0],dire(x,y,d)[1])){
+                    gamemap[calind(x,y)] = 0;
+                    return true;
+                }
+            }
+            return false;
+        }
+
         function generatemap() {
             var i;
             for(i=0;i<144;i++){
@@ -144,12 +182,15 @@
             }
             gamemap[0] = 0;
             search(1,1);
+            gamemap[143] = 0;
+            research(12,12);
         }
 
         function updatemap(stage){
             for(y=1;y<13;y++){
                 for(x=1;x<13;x++){
-                    mapblocks[calind(x,y)].graphics.beginFill(rectcolor(x,y)).beginStroke("#000000").drawRect(calpix(x,y)[0],calpix(x,y)[1],blocksize,blocksize);
+                    mapblocks[calind(x,y)].graphics.clear();
+                    mapblocks[calind(x,y)].graphics.beginFill(rectcolor(x,y)).beginStroke("#000000").drawRect(calpix(x,y)[0],calpix(x,y)[1],blocksize,blocksize);;
                 }
             }
             stage.update();
@@ -216,10 +257,10 @@
             //         }
             //     }
             // }
-            var queue1 = new Array();
-            var queue2 = new Array();
+            var queue1 = [];
+            var queue2 = [];
             var i,j1=0,j2=0,l1,l2;
-            queue1.push(new Array(x,y));
+            queue1.push([x,y]);
             for(i=0;i<step;i++){
                 // console.log("Move",i);
                 l1 = queue1.length;
@@ -233,11 +274,11 @@
                         if(isokforplayer(nx,ny,tp)){
                             if(gamemap[calind(nx,ny)] == 3){
                                 // console.log("add 1 cross",nx,ny);
-                                queue2.push(new Array(nx,ny));
+                                queue2.push([nx,ny]);
                             }else{
                                 gamemap[calind(nx,ny)] = 0-i-1;
                                 // console.log("add",nx,ny);
-                                queue1.push(new Array(nx,ny));
+                                queue1.push([nx,ny]);
                             }
                         }
                     }
@@ -252,7 +293,7 @@
                             if(gamemap[calind(nx,ny)] !== 3){
                                 gamemap[calind(nx,ny)] = 0-i-1 - 10;
                                 // console.log("add 1 cross",nx,ny);
-                                queue2.push(new Array(nx,ny));
+                                queue2.push([nx,ny]);
                             }
                         }
                     }
@@ -441,7 +482,7 @@
         }
 
         function calxyfrompix(pixx,pixy){
-            return new Array((pixx-basex)/blocksize+1, (pixy-basey)/blocksize+1);
+            return [(pixx-basex)/blocksize+1, (pixy-basey)/blocksize+1];
         }
 
         function init() {
