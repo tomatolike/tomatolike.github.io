@@ -398,6 +398,7 @@
                             ny = dire(zombies[i][0],zombies[i][1],d)[1];
                             if(nx == player[0] && ny == player[1] && power >= 5){
                                 power -= 5;
+                                basicstr = "Good Move. You now have "+power.toString()+" power.\nZombie's Move now.";
                                 addonstr += "\nYou used 5 power to stop it!";
                                 message.text = basicstr+"\n"+addonstr;
                                 updatemap(thestage);
