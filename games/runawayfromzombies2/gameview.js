@@ -8,15 +8,16 @@ var zombies = new Array(NUMZOMBIE);
 var gamestatus = 0;
 var playerpowerbar;
 var messagelabel;
+var playerimgs = new Array(12);
+var zombieimgs = new Array(12);
+var test;
 
 function drawShape(shape,img,xsize,ysize) { 
     
     // var shape = new createjs.Shape();
     // thestage.addChild(shape);
     
-    shape.graphics.clear()
-        .beginBitmapFill(img,"no-repeat")//, "repeat", matrix)
-        .drawRect(0,0,xsize,ysize);
+    shape.graphics.clear().beginBitmapFill(img,"no-repeat").drawRect(0,0,xsize,ysize);
 
     thestage.update();
 }
@@ -66,6 +67,7 @@ function keyPressed(event) {
     // console.log(event.which);
     switch(event.keyCode) {
         case KEYUP:	
+            // test.graphics.clear().beginBitmapFill(playerimgs[0],"no-repeat").drawRect(0,0,40,40);
             thegame.player.move[UP] = true;
             break;
         case KEYDOWN: 
@@ -110,21 +112,68 @@ function keyReleased(event) {
     }
 }
 
+function getplayerimg(status){
+    return playerimgs[status];
+}
+
+function getzombieimg(status){
+    return zombieimgs[status];
+}
+
 function frameupdate(){
-    if(gamestatus == 2){
+    var i,ok;
+    if(gamestatus == 0){
+        ok = 1;
+        for(i=0;i<12;i++){
+            // console.log(typeof("img",i,playerimgs[i]),playerimgs[i].complete,playerimgs[i].naturalHeight);
+            if(!(playerimgs[i].complete && playerimgs[i].naturalHeight != 0)){
+                ok=0;
+                break;
+            }
+        }
+        for(i=0;i<12;i++){
+            // console.log(typeof(zombieimgs[i]),zombieimgs[i]);
+            if(!(zombieimgs[i].complete && zombieimgs[i].naturalHeight != 0)){
+                ok=0;
+                break;
+            }
+        }
+        if(ok==1){
+            // console.log("status changed to",thegame.player.laststatus,getplayerimg(thegame.player.laststatus));
+            // player.graphics.clear().beginBitmapFill(getplayerimg(thegame.player.laststatus),"no-repeat").drawRect(thegame.player.px,thegame.player.py,HEROW,HEROL);
+            // for(i=0;i<NUMZOMBIE;i++){
+            //     zombies[i].graphics.clear().beginBitmapFill(getzombieimg(thegame.zombies[i].laststatus),"no-repeat").drawRect(thegame.zombies[i].px,thegame.zombies[i].py,ZOMBIEW,ZOMBIEL);
+            // }
+            gamestatus = 1;
+        }
+    }
+    if(gamestatus == 1){
         // console.log("frameupdate")
         thegame.update();
         // console.log("gameupdate")
-        var i=0;
-        moveObjTo(player,thegame.player.px,thegame.player.py);
+        
+        if(thegame.player.status()){
+            // console.log("status changed to",thegame.player.laststatus,getplayerimg(thegame.player.laststatus));
+            player.graphics.clear().beginBitmapFill(getplayerimg(thegame.player.laststatus),"no-repeat").drawRect(0,0,HEROW,HEROL);
+            moveObjTo(player,thegame.player.px,thegame.player.py);
+        }else{
+            moveObjTo(player,thegame.player.px,thegame.player.py);
+        }
         // console.log("playerupdate")
-        for(;i<NUMZOMBIE;i++){
-            moveObjTo(zombies[i],thegame.zombies[i].px,thegame.zombies[i].py);
+        for(i=0;i<NUMZOMBIE;i++){
+            if(thegame.zombies[i].status()){
+                // console.log("status changed to",thegame.player.laststatus,getplayerimg(thegame.player.laststatus));
+                zombies[i].graphics.clear().beginBitmapFill(getzombieimg(thegame.zombies[i].laststatus),"no-repeat").drawRect(0,0,ZOMBIEW,ZOMBIEL);
+            }else{
+                moveObjTo(zombies[i],thegame.zombies[i].px,thegame.zombies[i].py);
+            }
         }
         playerpowerbar.graphics.clear().beginFill("blue").drawRect(INFOBASEX+100,INFOBASEY+12,(120/PLAYER_POWER_FULL)*thegame.player.power,10);
         // console.log("zombieupdate")
         messagelabel.text = thegame.message;
-        
+        if(thegame.status != ONGOING){
+            gamestatus = 2;
+        }
     }
 }
 
@@ -141,6 +190,52 @@ function setupinfobox(){
     messagelabel.x = INFOBASEX+10;
     messagelabel.y = INFOBASEY+30;
     thestage.addChild(messagelabel);
+}
+
+function loadplayerimgs(){
+    playerimgs[UP_STAY]="../assests/hero_up_stay.png";
+    playerimgs[UP_WALK_1]="../assests/hero_up_walk_1.png";
+    playerimgs[UP_WALK_2]="../assests/hero_up_walk_2.png";
+    playerimgs[DOWN_STAY]="../assests/hero_down_stay.png";
+    playerimgs[DOWN_WALK_1]="../assests/hero_down_walk_1.png";
+    playerimgs[DOWN_WALK_2]="../assests/hero_down_walk_2.png";
+    playerimgs[LEFT_STAY]="../assests/hero_left_stay.png";
+    playerimgs[LEFT_WALK_1]="../assests/hero_left_walk_1.png";
+    playerimgs[LEFT_WALK_2]="../assests/hero_left_walk_2.png";
+    playerimgs[RIGHT_STAY]="../assests/hero_right_stay.png";
+    playerimgs[RIGHT_WALK_1]="../assests/hero_right_walk_1.png";
+    playerimgs[RIGHT_WALK_2]="../assests/hero_right_walk_2.png";
+    var i=0;
+    for(;i<12;i++){
+        var temp = new Image();
+        temp.onload = function(){
+        }
+        temp.src = playerimgs[i];
+        playerimgs[i] = temp;
+    }
+}
+
+function loadzombieimgs(){
+    zombieimgs[UP_STAY]="../assests/hero_up_stay.png";
+    zombieimgs[UP_WALK_1]="../assests/hero_up_walk_1.png";
+    zombieimgs[UP_WALK_2]="../assests/hero_up_walk_2.png";
+    zombieimgs[DOWN_STAY]="../assests/hero_down_stay.png";
+    zombieimgs[DOWN_WALK_1]="../assests/hero_down_walk_1.png";
+    zombieimgs[DOWN_WALK_2]="../assests/hero_down_walk_2.png";
+    zombieimgs[LEFT_STAY]="../assests/hero_left_stay.png";
+    zombieimgs[LEFT_WALK_1]="../assests/hero_left_walk_1.png";
+    zombieimgs[LEFT_WALK_2]="../assests/hero_left_walk_2.png";
+    zombieimgs[RIGHT_STAY]="../assests/hero_right_stay.png";
+    zombieimgs[RIGHT_WALK_1]="../assests/hero_right_walk_1.png";
+    zombieimgs[RIGHT_WALK_2]="../assests/hero_right_walk_2.png";
+    var i=0;
+    for(;i<12;i++){
+        var temp = new Image();
+        temp.onload = function(){
+        }
+        temp.src = zombieimgs[i];
+        zombieimgs[i] = temp;
+    }
 }
 
 function init(){
@@ -167,7 +262,7 @@ function init(){
 
     // Setup the info box
     var infobox = new createjs.Shape();
-    infobox.graphics.beginStroke("red").drawRect(INFOBASEX,INFOBASEY,6*BLOCKSIZE,(HGIHT-2)*BLOCKSIZE);
+    infobox.graphics.beginStroke("red").drawRect(INFOBASEX,INFOBASEY,300,(HGIHT-2)*BLOCKSIZE);
     stage.addChild(infobox);
 
     setupinfobox();
@@ -203,28 +298,23 @@ function init(){
 
     // Add player to the map
     player = new createjs.Shape();
-    var playerimg = new Image();
-    playerimg.onload = function (){
-        drawShape(player,playerimg,HEROW,HEROL);
-        gamestatus+=1;
-    }
-    playerimg.src = "../assests/hero.png"
-    moveObjTo(player, thegame.player.px, thegame.player.py);
     stage.addChild(player);
 
+    test = new createjs.Shape();
+    stage.addChild(test);
+
+    loadplayerimgs();
+
     // Add zombies to the map
-    var zombieimg = new Image();
-    zombieimg.onload = function (){
-        var i=0;
-        for(;i<NUMZOMBIE;i++){
-            zombies[i] = new createjs.Shape();
-            drawShape(zombies[i],zombieimg,ZOMBIEW,ZOMBIEL);
-            moveObjTo(zombies[i], thegame.zombies[i].px, thegame.zombies[i].py);
-            stage.addChild(zombies[i]);
-        }
-        gamestatus+=1;
+    var i=0;
+    for(;i<NUMZOMBIE;i++){
+        zombies[i] = new createjs.Shape();
+        stage.addChild(zombies[i]);
     }
-    zombieimg.src = "../assests/zombie.png"
+    // zombies[0] = new createjs.Shape();
+    // stage.addChild(zombies[0]);
+
+    loadzombieimgs();
 
     createjs.Ticker.addEventListener("tick", stage);
     createjs.Ticker.addEventListener("tick", frameupdate);

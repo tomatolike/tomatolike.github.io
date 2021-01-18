@@ -7,19 +7,19 @@ const HERO = 1;
 const BASEX = 100;
 const BASEY = 150;
 const BLOCKSIZE = 60;
-const HEROW = 36;
+const HEROW = 20;
 const HEROL = 40;
-const ZOMBIEW = 27;
+const ZOMBIEW = 20;
 const ZOMBIEL = 40;
 
-const INFOBASEX = BASEX+WIDTH*BLOCKSIZE+80;
-const INFOBASEY = BASEY+2*BLOCKSIZE;
+const INFOBASEX = BASEX+WIDTH*BLOCKSIZE+20;
+const INFOBASEY = BASEY;
 
 const OUTMAP = 10;
 const PATH = 0;
 const WALL = 1;
 
-const NUMZOMBIE = 10;
+const NUMZOMBIE = 1;
 
 const KEYUP = 87;
 const KEYDOWN = 83;
@@ -34,6 +34,11 @@ const PLAYER_HIGH_SPEED = 6;
 const ZOMBIE_LOW_SPEED = 1;
 const ZOMBIE_MIDDLE_SPEED = 3;
 const ZOMBIE_HIGH_SPEED = 5;
+
+const STAY_COUNTER = 300;
+const LOW_COUNTER = 15;
+const NORMAL_COUNTER = 8;
+const HIGH_COUNTER = 4;
 
 const PLAYER_POWER_FULL = 100;
 const PLAYER_POWER_LOST = 4;
@@ -58,6 +63,19 @@ const HEARRANGE = 2;
 const PLAYERWIN = 1;
 const ZOMBIEWIN = 2;
 const ONGOING = 0;
+
+const DOWN_STAY = 0;
+const DOWN_WALK_1 = 1;
+const DOWN_WALK_2 = 2;
+const RIGHT_STAY = 3;
+const RIGHT_WALK_1 = 4;
+const RIGHT_WALK_2 = 5;
+const LEFT_STAY = 6;
+const LEFT_WALK_1 = 7;
+const LEFT_WALK_2 = 8;
+const UP_STAY = 9;
+const UP_WALK_1 = 10;
+const UP_WALK_2 = 11;
 
 function outmap(x,y){
     if(x<1 || y<1 || x>WIDTH || y > HGIHT){
@@ -141,18 +159,34 @@ function overlap(x,y,w,l,x2,y2,w2,l2){
     return false;
 }
 
-function cornerdirepx(x,y,d){
+function cornerdirepx(x,y,d,type){
     if(d==0){
-        return [x+40,y];
+        if(type == ZOMBIE){
+            return [x+ZOMBIEW,y];
+        }else{
+            return [x+HEROW,y];
+        }
     }
     if(d==1){
-        return [x,y+40];
+        if(type == ZOMBIE){
+            return [x,y+ZOMBIEL];
+        }else{
+            return [x,y+HEROL];
+        }
     }
     if(d==2){
-        return [x-40,y];
+        if(type == ZOMBIE){
+            return [x-ZOMBIEW,y];
+        }else{
+            return [x-HEROW,y];
+        }
     }
     if(d==3){
-        return [x,y-40];
+        if(type == ZOMBIE){
+            return [x,y-ZOMBIEL];
+        }else{
+            return [x,y-HEROL];
+        }
     }
 }
 

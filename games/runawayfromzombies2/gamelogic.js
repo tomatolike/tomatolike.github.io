@@ -7,6 +7,12 @@ class Zombie {
         this.move = [false,false,false,false]
         this.chasing = false;
         this.aim = [0,0];
+        this.laststatus = DOWN_STAY;
+        this.speed=0;
+        this.lastspeed=0;
+        this.statuscounter=STAY_COUNTER;
+        this.dire;
+        this.lastdire;
     }
 
     setaim(px, py){
@@ -29,6 +35,99 @@ class Zombie {
             this.move[DOWN] = true;
         }
     }
+
+    ifmoving(){
+        var i=0;
+        for(;i<4;i++){
+            if(this.move[i]){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    updatedire(){
+        var dire=NODIRE;
+        if(this.move[UP]){
+            if(this.move[RIGHT]){
+                dire = RIGHTUP;
+            }else if(this.move[LEFT]){
+                dire = LEFTUP;
+            }else{
+                dire = UP;
+            }
+        }else if(this.move[DOWN]){
+            if(this.move[RIGHT]){
+                dire = RIGHTDOWN;
+            }else if(this.move[LEFT]){
+                dire = LEFTDOWN;
+            }else{
+                dire = DOWN;
+            }
+        }else if(this.move[RIGHT]){
+            dire = RIGHT;
+        }else if(this.move[LEFT]){
+            dire = LEFT;
+        }else{
+            dire = NODIRE;
+        }
+        this.lastdire = this.dire; this.dire = dire;
+    }
+
+    status(){
+        //if change speed or direct, counter = 0;
+        this.updatedire();
+        if(this.speed != this.lastspeed || this.dire != this.lastdire){
+            this.statuscounter = 0;
+        }else{
+            this.statuscounter --;
+        }
+
+        //if counter == 0, change status
+        var newstatus=this.laststatus;
+        if(this.statuscounter == 0){
+            if(this.speed == 0){
+                if(this.dire == UP || this.dire == RIGHTUP){
+                    newstatus = UP_STAY;
+                }else if(this.dire == RIGHT || this.dire == RIGHTDOWN){
+                    newstatus = RIGHT_STAY;
+                }else if(this.dire == DOWN || this.dire == LEFTDOWN){
+                    newstatus = DOWN_STAY;
+                }else if(this.dire == LEFT || this.dire == LEFTUP){
+                    newstatus = LEFT_STAY;
+                }else{
+                    newstatus = this.laststatus;
+                }
+                this.statuscounter = STAY_COUNTER;
+            }else{
+                if(this.speed == ZOMBIE_LOW_SPEED){
+                    this.statuscounter = LOW_COUNTER;
+                }
+                if(this.speed == ZOMBIE_HIGH_SPEED){
+                    this.statuscounter = HIGH_COUNTER;
+                }
+                if(this.speed == ZOMBIE_MIDDLE_SPEED){
+                    this.statuscounter = NORMAL_COUNTER;
+                }
+                if(this.dire == UP || this.dire == RIGHTUP){
+                    newstatus = UP_WALK_1;
+                }else if(this.dire == RIGHT || this.dire == RIGHTDOWN){
+                    newstatus = RIGHT_WALK_1;
+                }else if(this.dire == DOWN || this.dire == LEFTDOWN){
+                    newstatus = DOWN_WALK_1;
+                }else if(this.dire == LEFT || this.dire == LEFTUP){
+                    newstatus = LEFT_WALK_1;
+                }
+                if(newstatus == this.laststatus){
+                    newstatus += 1;
+                }
+            }
+            this.laststatus = newstatus;
+            return true;
+        }else{
+            return false;
+        }
+    }
 }
 
 class Player {
@@ -40,6 +139,12 @@ class Player {
         this.move = [false,false,false,false]
         this.slow = false;
         this.run = false;
+        this.laststatus = DOWN_STAY;
+        this.speed=0;
+        this.lastspeed=0;
+        this.statuscounter=STAY_COUNTER;
+        this.dire;
+        this.lastdire;
     }
 
     ifmoving(){
@@ -50,6 +155,89 @@ class Player {
             }
         }
         return false;
+    }
+
+    updatedire(){
+        var dire=NODIRE;
+        if(this.move[UP]){
+            if(this.move[RIGHT]){
+                dire = RIGHTUP;
+            }else if(this.move[LEFT]){
+                dire = LEFTUP;
+            }else{
+                dire = UP;
+            }
+        }else if(this.move[DOWN]){
+            if(this.move[RIGHT]){
+                dire = RIGHTDOWN;
+            }else if(this.move[LEFT]){
+                dire = LEFTDOWN;
+            }else{
+                dire = DOWN;
+            }
+        }else if(this.move[RIGHT]){
+            dire = RIGHT;
+        }else if(this.move[LEFT]){
+            dire = LEFT;
+        }else{
+            dire = NODIRE;
+        }
+        this.lastdire = this.dire; this.dire = dire;
+    }
+
+    status(){
+        //if change speed or direct, counter = 0;
+        this.updatedire();
+        if(this.speed != this.lastspeed || this.dire != this.lastdire){
+            this.statuscounter = 0;
+        }else{
+            this.statuscounter --;
+        }
+
+        //if counter == 0, change status
+        var newstatus=this.laststatus;
+        if(this.statuscounter == 0){
+            if(this.speed == 0){
+                if(this.dire == UP || this.dire == RIGHTUP){
+                    newstatus = UP_STAY;
+                }else if(this.dire == RIGHT || this.dire == RIGHTDOWN){
+                    newstatus = RIGHT_STAY;
+                }else if(this.dire == DOWN || this.dire == LEFTDOWN){
+                    newstatus = DOWN_STAY;
+                }else if(this.dire == LEFT || this.dire == LEFTUP){
+                    newstatus = LEFT_STAY;
+                }else{
+                    newstatus = this.laststatus;
+                }
+                this.statuscounter = STAY_COUNTER;
+            }else{
+                if(this.speed == PLAYER_LOW_SPEED){
+                    this.statuscounter = LOW_COUNTER;
+                }
+                if(this.speed == PLAYER_HIGH_SPEED){
+                    this.statuscounter = HIGH_COUNTER;
+                }
+                if(this.speed == PLAYER_NORMAL_SPEED){
+                    this.statuscounter = NORMAL_COUNTER;
+                }
+                if(this.dire == UP || this.dire == RIGHTUP){
+                    newstatus = UP_WALK_1;
+                }else if(this.dire == RIGHT || this.dire == RIGHTDOWN){
+                    newstatus = RIGHT_WALK_1;
+                }else if(this.dire == DOWN || this.dire == LEFTDOWN){
+                    newstatus = DOWN_WALK_1;
+                }else if(this.dire == LEFT || this.dire == LEFTUP){
+                    newstatus = LEFT_WALK_1;
+                }
+                if(newstatus == this.laststatus){
+                    newstatus += 1;
+                }
+            }
+            this.laststatus = newstatus;
+            return true;
+        }else{
+            return false;
+        }
     }
 }
 
@@ -150,7 +338,7 @@ class Game {
             if(this.gamemap[calind(bkxy[0],bkxy[1])] == WALL && overlap(px,py,w,l,bkpxy[0],bkpxy[1],BLOCKSIZE,BLOCKSIZE)){
                 return false;
             }
-            nxy = cornerdirepx(nxy[0],nxy[1],i);
+            nxy = cornerdirepx(nxy[0],nxy[1],i,type);
         }
         return true;
     }
@@ -201,6 +389,7 @@ class Game {
     updateplayer(){
         var pxy = [this.player.px,this.player.py];
         var speed = (this.player.slow ? PLAYER_LOW_SPEED : (this.player.run ? (this.player.power>=PLAYER_POWER_LOST ? PLAYER_HIGH_SPEED : PLAYER_NORMAL_SPEED) : PLAYER_NORMAL_SPEED));
+        this.player.lastspeed = this.player.speed; this.player.speed = speed;
         var range;
         var i,ok=false;
         // console.log(speed,this.player.slow,this.player.run)
@@ -216,6 +405,9 @@ class Game {
                     }
                 }
             }
+        }
+        if(!this.player.ifmoving()){
+            this.player.speed = 0;
         }
         if(!this.player.ifmoving() || this.player.slow){
             this.player.power += PLAYER_POWER_RECOVER;
@@ -271,7 +463,8 @@ class Game {
             if(!this.player.slow && this.player.ifmoving()){
                 if(inhearrange(zbkxy,pbkxy,d)){
                     zombie.chasing = true;
-                    zombie.setaim(calpix(pbkxy[0],pbkxy[1])[0],calpix(pbkxy[0],pbkxy[1])[1]);
+                    // zombie.setaim(calpix(pbkxy[0],pbkxy[1])[0],calpix(pbkxy[0],pbkxy[1])[1]);
+                    zombie.setaim(this.player.px,this.player.py);
                     // console.log("Player heared, moving",zombie.move)
                     return true;
                 }
@@ -306,6 +499,7 @@ class Game {
         this.detectplayer(zombie);
         // console.log("detectplayer");
         var speed = (zombie.chasing ? (zombie.power >= ZOMBIE_POWER_LOST ? ZOMBIE_HIGH_SPEED : ZOMBIE_MIDDLE_SPEED) : ZOMBIE_LOW_SPEED);
+        zombie.lastspeed = zombie.speed; zombie.speed = speed;
         var i,ok=0;
         for(i=0;i<4;i++){
             if(zombie.move[i] == true){
@@ -329,6 +523,9 @@ class Game {
             }
         }
         // console.log("moveit");
+        if(!zombie.ifmoving()){
+            zombie.speed = 0;
+        }
         if(ok == 1){
             zombie.px = pxy[0];zombie.py = pxy[1];
             if(zombie.chasing && zombie.power >= ZOMBIE_POWER_LOST){
