@@ -235,7 +235,7 @@ class Player {
                 }
             }
             this.laststatus = newstatus;
-            console.log(this.laststatus);
+            // console.log(this.laststatus);
             return true;
         }else{
             return false;
@@ -434,7 +434,7 @@ class Game {
     notwallrange(fromxy,toxy,d){
         var nxy=fromxy;
         if(fromxy[0]==toxy[0] && fromxy[1] == toxy[1]){
-            return true;
+            return 1;
         }
         while(true){
             nxy = dire(nxy[0],nxy[1],d);
@@ -442,10 +442,10 @@ class Game {
                 break;
             }
             if(!this.notwall(nxy[0],nxy[1])){
-                return false;
+                return 0;
             }
         }
-        return true;
+        return 2;
     }
 
     detectplayer(zombie){
@@ -456,9 +456,13 @@ class Game {
             // zombie.chasing = false;
             return false;
         }
-        if(zombie.move[d] && this.notwallrange(zbkxy,pbkxy,d)){
+        if(zombie.move[d] && this.notwallrange(zbkxy,pbkxy,d) > 0){
             zombie.chasing = true;
-            zombie.setaim(calpix(pbkxy[0],pbkxy[1])[0],calpix(pbkxy[0],pbkxy[1])[1]);
+            if(this.notwallrange(zbkxy,pbkxy,d) == 1){
+                zombie.setaim(this.player.px,this.player.py);
+            }else{
+                zombie.setaim(calpix(pbkxy[0],pbkxy[1])[0],calpix(pbkxy[0],pbkxy[1])[1]);
+            }
             // console.log("Player seen, moving",zombie.move)
             return true;
         }else{
@@ -518,6 +522,7 @@ class Game {
                         npxy = direrange(pxy[0],pxy[1],i,speed);
                     }
                 }
+                // console.log("move to",npxy);
                 if(this.moveable(npxy[0],npxy[1],ZOMBIE) && !this.intozombies(npxy[0],npxy[1],true,index) && (pxy[0] != npxy[0] || pxy[1] != npxy[1])){
                     pxy = npxy;
                     ok = 1;
@@ -545,6 +550,7 @@ class Game {
             this.setrandomgoal(zombie);
         }
         if(this.intoplayer(zombie.px,zombie.py)){
+            // console.log("zombie",index,"hit")
             this.message = "The zombie gets you!\nYou are dead...";
             this.status = ZOMBIEWIN;
         }

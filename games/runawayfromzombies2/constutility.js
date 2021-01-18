@@ -154,6 +154,7 @@ function outmappx(x,y){
 
 function overlap(x,y,w,l,x2,y2,w2,l2){
     if( ((x<=x2 && x2<x+w) || (x2<=x && x<x2+w2)) && ((y<=y2 && y2<y+l) || (y2<=y && y<y2+l2)) ){
+        // console.log(x,y,w,l,x2,y2,w2,l2);
         return true;
     }
     return false;

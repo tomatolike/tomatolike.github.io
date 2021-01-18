@@ -156,16 +156,21 @@ function frameupdate(){
             // console.log("status changed to",thegame.player.laststatus,getplayerimg(thegame.player.laststatus));
             player.graphics.clear().beginBitmapFill(getplayerimg(thegame.player.laststatus),"no-repeat").drawRect(0,0,HEROW,HEROL);
             moveObjTo(player,thegame.player.px,thegame.player.py);
+            // console.log("player",thegame.player.px,thegame.player.py)
         }else{
             moveObjTo(player,thegame.player.px,thegame.player.py);
+            // console.log("player",thegame.player.px,thegame.player.py)
         }
         // console.log("playerupdate")
         for(i=0;i<NUMZOMBIE;i++){
             if(thegame.zombies[i].status()){
                 // console.log("status changed to",thegame.player.laststatus,getplayerimg(thegame.player.laststatus));
                 zombies[i].graphics.clear().beginBitmapFill(getzombieimg(thegame.zombies[i].laststatus),"no-repeat").drawRect(0,0,ZOMBIEW,ZOMBIEL);
+                moveObjTo(zombies[i],thegame.zombies[i].px,thegame.zombies[i].py);
+                // console.log("zombie",i,thegame.zombies[i].px,thegame.zombies[i].py)
             }else{
                 moveObjTo(zombies[i],thegame.zombies[i].px,thegame.zombies[i].py);
+                // console.log("zombie",i,thegame.zombies[i].px,thegame.zombies[i].py)
             }
         }
         playerpowerbar.graphics.clear().beginFill("blue").drawRect(INFOBASEX+100,INFOBASEY+12,(120/PLAYER_POWER_FULL)*thegame.player.power,10);
