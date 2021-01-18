@@ -19,7 +19,7 @@ const OUTMAP = 10;
 const PATH = 0;
 const WALL = 1;
 
-const NUMZOMBIE = 1;
+const NUMZOMBIE = 10;
 
 const KEYUP = 87;
 const KEYDOWN = 83;

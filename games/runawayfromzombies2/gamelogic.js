@@ -87,13 +87,13 @@ class Zombie {
         var newstatus=this.laststatus;
         if(this.statuscounter == 0){
             if(this.speed == 0){
-                if(this.dire == UP || this.dire == RIGHTUP){
+                if(this.lastdire == UP || this.lastdire == RIGHTUP){
                     newstatus = UP_STAY;
-                }else if(this.dire == RIGHT || this.dire == RIGHTDOWN){
+                }else if(this.lastdire == RIGHT || this.lastdire == RIGHTDOWN){
                     newstatus = RIGHT_STAY;
-                }else if(this.dire == DOWN || this.dire == LEFTDOWN){
+                }else if(this.lastdire == DOWN || this.lastdire == LEFTDOWN){
                     newstatus = DOWN_STAY;
-                }else if(this.dire == LEFT || this.dire == LEFTUP){
+                }else if(this.lastdire == LEFT || this.lastdire == LEFTUP){
                     newstatus = LEFT_STAY;
                 }else{
                     newstatus = this.laststatus;
@@ -193,18 +193,19 @@ class Player {
         }else{
             this.statuscounter --;
         }
-
+        
         //if counter == 0, change status
         var newstatus=this.laststatus;
         if(this.statuscounter == 0){
+            // console.log(this.speed,this.dire)
             if(this.speed == 0){
-                if(this.dire == UP || this.dire == RIGHTUP){
+                if(this.lastdire == UP || this.lastdire == RIGHTUP){
                     newstatus = UP_STAY;
-                }else if(this.dire == RIGHT || this.dire == RIGHTDOWN){
+                }else if(this.lastdire == RIGHT || this.lastdire == RIGHTDOWN){
                     newstatus = RIGHT_STAY;
-                }else if(this.dire == DOWN || this.dire == LEFTDOWN){
+                }else if(this.lastdire == DOWN || this.lastdire == LEFTDOWN){
                     newstatus = DOWN_STAY;
-                }else if(this.dire == LEFT || this.dire == LEFTUP){
+                }else if(this.lastdire == LEFT || this.lastdire == LEFTUP){
                     newstatus = LEFT_STAY;
                 }else{
                     newstatus = this.laststatus;
@@ -234,6 +235,7 @@ class Player {
                 }
             }
             this.laststatus = newstatus;
+            console.log(this.laststatus);
             return true;
         }else{
             return false;
