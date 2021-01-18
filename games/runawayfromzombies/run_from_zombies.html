@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://code.createjs.com/easeljs-0.8.2.min.js"></script>
+    <script>
+        var gamemap = new Array(144); //0 path, 1 wall, 2 player, 3 zombie, 4 moving zombie, <0 bluecell
+        var mapblocks = new Array(144); //Shape objects
+        let numzombie = 15; //number of zombies
+        var player = new Array(2); //(x,y) of the player
+        var zombies = new Array(numzombie); //(x,y) of each zombie
+        var blocksize = 40; //pix lenth of each block
+        var basex = 200; 
+        var basey = 300;
+        var thestage = null;
+        var power; //the power of the player
+        var button; //restart game button
+        var message; 
+        var move; //movable steps each round
+        var sleepspeed=500;
+
+        function calind(x, y) {
+            return (y-1)*12 + (x-1);
+        }
+
+        function calpix(x, y) {
+            return [basex+(x-1)*blocksize, basey+(y-1)*blocksize];
+        }
+
+        function sleep(ms) {
+            // console.log("sleep",ms);
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function rectcolor(x,y) {
+            if(gamemap[calind(x,y)] == 0){
+                return "white"
+            }
+            if(gamemap[calind(x,y)] == 1){
+                return "#919395"
+            }
+            if(gamemap[calind(x,y)] == 2){
+                return "green"
+            }
+            if(gamemap[calind(x,y)] == 3){
+                return "orange"
+            }
+            if(gamemap[calind(x,y)] == 4){
+                return "red"
+            }
+            if(gamemap[calind(x,y)] < 0){
+                return "blue"
+            }
+        }
+
+        function printmap() {
+            var i=0;
+            var j=0;
+            for(i=1;i<13;i++){
+                var str = "";
+                for(j=1;j<13;j++){
+                    str += gamemap[calind(j,i)];
+                    str += " ";
+                }
+                console.log(str);
+            }
+        }
+
+        function isok(x,y) {
+            if(x<1 || x>12 || y<1 || y>12){
+                return false;
+            }
+            if(gamemap[calind(x,y)] == 1){
+                return false;
+            }
+            return true;
+        }
+
+        function dire(x,y,d){
+            if(d==0){
+                return [x+1,y];
+            }
+            if(d==1){
+                return [x,y-1];
+            }
+            if(d==2){
+                return [x-1,y];
+            }
+            if(d==3){
+                return [x,y+1];
+            }
+        }
+
+        function search(x, y) {
+            // console.log("searching",x,y)
+            if(x==12 && y==12){
+                gamemap[143] = 0;
+                return true;
+            }
+            if(x<1 || x>12 || y<1 || y>12){
+                return false;
+            }
+            if(isok(x-1,y-1) && isok(x-1,y) && isok(x,y-1)){
+                return false;
+            }
+            if(isok(x+1,y+1) && isok(x+1,y) && isok(x,y+1)){
+                return false;
+            }
+            if(isok(x-1,y+1) && isok(x-1,y) && isok(x,y+1)){
+                return false;
+            }
+            if(isok(x+1,y-1) && isok(x+1,y) && isok(x,y-1)){
+                return false;
+            }
+            gamemap[calind(x,y)] = 0;
+
+            var d = Math.floor(Math.random()*4);
+            if(!isok(dire(x,y,d)[0],dire(x,y,d)[1])){
+                search(dire(x,y,d)[0],dire(x,y,d)[1]);
+            }
+            d += 1;
+            d = d%4;
+            if(!isok(dire(x,y,d)[0],dire(x,y,d)[1])){
+                search(dire(x,y,d)[0],dire(x,y,d)[1]);
+            }
+            d += 1;
+            d = d%4;
+            if(!isok(dire(x,y,d)[0],dire(x,y,d)[1])){
+                search(dire(x,y,d)[0],dire(x,y,d)[1]);
+            }
+            d += 1;
+            d = d%4;
+            if(!isok(dire(x,y,d)[0],dire(x,y,d)[1])){
+                search(dire(x,y,d)[0],dire(x,y,d)[1]);
+            }
+
+            gamemap[calind(x,y)] = 0;
+            return true;
+        }
+
+        function research(x, y) {
+            if(gamemap[calind(x,y)] == 0){
+                return true;
+            }
+            var d = Math.floor(Math.random()*4);
+            if(!isok(dire(x,y,d)[0],dire(x,y,d)[1])){
+                if(research(dire(x,y,d)[0],dire(x,y,d)[1])){
+                    gamemap[calind(x,y)] = 0;
+                    return true;
+                }
+            }
+            d += 1;
+            d = d%4;
+            if(!isok(dire(x,y,d)[0],dire(x,y,d)[1])){
+                if(research(dire(x,y,d)[0],dire(x,y,d)[1])){
+                    gamemap[calind(x,y)] = 0;
+                    return true;
+                }
+            }
+            d += 1;
+            d = d%4;
+            if(!isok(dire(x,y,d)[0],dire(x,y,d)[1])){
+                if(research(dire(x,y,d)[0],dire(x,y,d)[1])){
+                    gamemap[calind(x,y)] = 0;
+                    return true;
+                }
+            }
+            d += 1;
+            d = d%4;
+            if(!isok(dire(x,y,d)[0],dire(x,y,d)[1])){
+                if(research(dire(x,y,d)[0],dire(x,y,d)[1])){
+                    gamemap[calind(x,y)] = 0;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function generatemap() {
+            var i;
+            for(i=0;i<144;i++){
+                gamemap[i] = 1;
+            }
+            gamemap[0] = 0;
+            search(1,1);
+            gamemap[143] = 0;
+            research(12,12);
+        }
+
+        function updatemap(stage){
+            for(y=1;y<13;y++){
+                for(x=1;x<13;x++){
+                    mapblocks[calind(x,y)].graphics.clear();
+                    mapblocks[calind(x,y)].graphics.beginFill(rectcolor(x,y)).beginStroke("#000000").drawRect(calpix(x,y)[0],calpix(x,y)[1],blocksize,blocksize);;
+                }
+            }
+            stage.update();
+        }
+
+        function moveplayer(x,y){
+            gamemap[calind(player[0],player[1])] = 0;
+            gamemap[calind(x,y)] = 2;
+            player[0]=x;
+            player[1]=y;
+        }
+
+        function isokforzombie(x,y){
+            if(x<1 || x>12 || y<1 || y>12){
+                return false;
+            }
+            if(gamemap[calind(x,y)] != 1 && gamemap[calind(x,y)] != 3){
+                return true;
+            }else{
+                return false;
+            }
+        }
+
+        function generatezombies(){
+            var i;
+            for(i=0;i<numzombie;i++){
+                while(true){
+                    var x = Math.floor(Math.random()*12)+1;
+                    var y = Math.floor(Math.random()*12)+1;
+                    if(isokforzombie(x,y) && (x != 1 || y != 1)){
+                        gamemap[calind(x,y)] = 3;
+                        zombies[i] = new Array(x,y);
+                        break;
+                    }
+                }
+            }
+        }
+
+        function isokforplayer(x,y,tp){
+            if(x<1 || x>12 || y<1 || y>12){
+                return false;
+            }
+            if(gamemap[calind(x,y)] == 1 || gamemap[calind(x,y)] < 0 || gamemap[calind(x,y)] == 2){
+                return false;
+            }
+            if(gamemap[calind(x,y)] == 3 && tp < 5){
+                return false;
+            }
+            return true;
+        }
+
+        function setbluecells(x,y,step,tp){
+            var d;
+            // if(step > 0){
+            //     for(d=0;d<4;d++){
+            //         var nx=dire(x,y,d)[0],ny=dire(x,y,d)[1];
+            //         if(isokforplayer(nx,ny,tp)){
+            //             if(gamemap[calind(nx,ny)] == 3){
+            //                 setbluecells(nx,ny,step-1,tp-5);
+            //             }else{
+            //                 gamemap[calind(nx,ny)] = 4;
+            //                 setbluecells(nx,ny,step-1,tp);
+            //             }
+            //         }
+            //     }
+            // }
+            var queue1 = [];
+            var queue2 = [];
+            var i,j1=0,j2=0,l1,l2;
+            queue1.push([x,y]);
+            for(i=0;i<step;i++){
+                // console.log("Move",i);
+                l1 = queue1.length;
+                l2 = queue2.length;
+                for(;j1<l1;j1++){
+                    var xx = queue1[j1][0], yy=queue1[j1][1];
+                    // console.log("At",xx,yy);
+                    for(d=0;d<4;d++){
+                        var nx=dire(xx,yy,d)[0],ny=dire(xx,yy,d)[1];
+                        // console.log("check",nx,ny);
+                        if(isokforplayer(nx,ny,tp)){
+                            if(gamemap[calind(nx,ny)] == 3){
+                                // console.log("add 1 cross",nx,ny);
+                                queue2.push([nx,ny]);
+                            }else{
+                                gamemap[calind(nx,ny)] = 0-i-1;
+                                // console.log("add",nx,ny);
+                                queue1.push([nx,ny]);
+                            }
+                        }
+                    }
+                }
+                for(;j2<l2;j2++){
+                    var xx = queue2[j2][0], yy=queue2[j2][1];
+                    // console.log("At 1 cross",xx,yy);
+                    for(d=0;d<4;d++){
+                        var nx=dire(xx,yy,d)[0],ny=dire(xx,yy,d)[1];
+                        // console.log("check",nx,ny);
+                        if(isokforplayer(nx,ny,tp)){
+                            if(gamemap[calind(nx,ny)] !== 3){
+                                gamemap[calind(nx,ny)] = 0-i-1 - 10;
+                                // console.log("add 1 cross",nx,ny);
+                                queue2.push([nx,ny]);
+                            }
+                        }
+                    }
+                }
+                // printmap();
+            }
+        }
+
+        function stage1(){
+            move = Math.floor(Math.random()*6)+1;
+            // console.log("find blue")
+            setbluecells(player[0],player[1],move,power);
+            // printmap();
+            message.text = "You have "+power.toString()+" power.\nYou can move "+move.toString()+" steps this round.\nClick blue cells to move or click yourself to stay.";
+        }
+
+        function refreshmap(){
+            generatemap();
+            moveplayer(1,1);
+            power = 0;
+            generatezombies();
+
+            stage1();
+            updatemap(thestage);
+        }
+
+        function zombieseeplayer(i){
+            var zx = zombies[i][0], zy = zombies[i][1];
+            var i,low,high,ok=0,direct=-1;
+            // console.log("zombie:",zombies[i][0],zombies[i][1],"player:",player[0],player[1]);
+            if(zx == player[0]){
+                ok = 1;
+                if(zy<player[1]){
+                    low=zy;high=player[1];direct=3;
+                }else{
+                    high=zy;low=player[1];direct=1;
+                }
+                // console.log("same column, checking from",low,"to",high);
+                for(i=low+1;i<high;i++){
+                    // console.log("checking",zx,i,gamemap[calind(zx,i)]);
+                    if(gamemap[calind(zx,i)] == 1 || gamemap[calind(zx,i)] == 3){
+                        ok=0;
+                        break;
+                    }
+                }
+            }
+            if(ok==1){
+                return direct;
+            }
+            if(zy == player[1]){
+                ok=1;
+                if(zx<player[0]){
+                    low=zx;high=player[0];direct=0;
+                }else{
+                    high=zx;low=player[0];direct=2;
+                }
+                // console.log("same row, checking from",low,"to",high);
+                for(i=low+1;i<high;i++){
+                    // console.log("checking",i,zy,gamemap[calind(i,zy)]);
+                    if(gamemap[calind(i,zy)] == 1 || gamemap[calind(i,zy)] == 3){
+                        ok-=1;
+                        break;
+                    }
+                }
+            }
+            if(ok==1){
+                return direct;
+            }
+            return -1;
+        }
+
+        function zombiemove(i,x,y){
+            var temp = gamemap[calind(zombies[i][0],zombies[i][1])]
+            gamemap[calind(zombies[i][0],zombies[i][1])] = 0;
+            zombies[i][0] = x;zombies[i][1] = y;
+            gamemap[calind(zombies[i][0],zombies[i][1])] = temp;
+        }
+
+        async function movezombies(){
+            var basicstr = "Good Move. You now have "+power.toString()+" power.\nZombie's Move now.";
+            var addonstr = ""
+            message.text = basicstr;
+            updatemap(thestage);
+
+            var i,end=0;
+            for(i=0;i<numzombie;i++){
+                addonstr = "Zombie "+(i+1).toString()+" (red) moving ...";
+                message.text = basicstr+"\n"+addonstr;
+                gamemap[calind(zombies[i][0],zombies[i][1])] = 4;
+                updatemap(thestage);
+                var zm,j,d,next=0;
+                while(true){
+                    d=zombieseeplayer(i);
+                    if(d>=0){
+                        zm = Math.floor(Math.random()*6)+1;
+                        addonstr += "\nIt found you! It will move "+zm.toString()+" steps.";
+                        message.text = basicstr+"\n"+addonstr;
+                        updatemap(thestage);
+                        await sleep(1000);
+                        for(j=0;j<zm;j++){
+                            nx = dire(zombies[i][0],zombies[i][1],d)[0];
+                            ny = dire(zombies[i][0],zombies[i][1],d)[1];
+                            if(nx == player[0] && ny == player[1] && power >= 5){
+                                power -= 5;
+                                basicstr = "Good Move. You now have "+power.toString()+" power.\nZombie's Move now.";
+                                addonstr += "\nYou used 5 power to stop it!";
+                                message.text = basicstr+"\n"+addonstr;
+                                updatemap(thestage);
+                                await sleep(1000);
+                                break;
+                            }
+                            zombiemove(i,nx,ny);
+                            updatemap(thestage);
+                            await sleep(500);
+                            if(zombies[i][0] == player[0] && zombies[i][1] == player[1]){
+                                end=1;
+                                break;
+                            }
+                        }
+                        break;
+                    }else{
+                        if(next==1){
+                            break;
+                        }
+                        addonstr += "\nIt is wandering around and roaring!";
+                        message.text = basicstr+"\n"+addonstr;
+                        updatemap(thestage);
+                        await sleep(100);
+                        d = Math.floor(Math.random()*4);
+                        var nx,ny;
+                        for(j=0;j<4;j++){
+                            nx = dire(zombies[i][0],zombies[i][1],d)[0];
+                            ny = dire(zombies[i][0],zombies[i][1],d)[1];
+                            if(isokforzombie(nx,ny)){
+                                zombiemove(i,nx,ny);
+                                break;
+                            }
+                            d+=1;
+                            d=d%4;
+                        }
+                        updatemap(thestage);
+                        await sleep(sleepspeed);
+                    }
+                    next+=1;
+                }
+                if(end==1){
+                    addonstr += "\nThe zombie get you! You are dead now.\nClick REstart to restart.";
+                    message.text = basicstr+"\n"+addonstr;
+                    break;
+                }
+                gamemap[calind(zombies[i][0],zombies[i][1])] = 3;
+            }
+
+            updatemap(thestage);
+            if(end!=1){
+                await sleep(sleepspeed);
+                stage1();
+                updatemap(thestage);
+            }
+        }
+
+        function atfinal(){
+            if(player[0] == 12 && player[1] == 12){
+                return true;
+            }
+            return false;
+        }
+
+        function playermove(x,y) {
+            // console.log("move to",x,y);
+            if(gamemap[calind(x,y)] < 0 || gamemap[calind(x,y)] == 2){
+                if(gamemap[calind(x,y)] < 0){
+                    if(gamemap[calind(x,y)] < -10){
+                        power -= 5;   
+                        gamemap[calind(x,y)]+=10;
+                    }
+                    power += move + gamemap[calind(x,y)];
+                    moveplayer(x,y);
+                }else{
+                    power += move;
+                }
+                if(power > 10){
+                    power = 10;
+                }
+
+                var i;
+                for(i=0;i<144;i++){
+                    if(gamemap[i]<0){
+                        gamemap[i] = 0;
+                    }
+                }
+
+                if(atfinal()){
+                    message.text = "You have escaped! Lucky!\nClick REstart to restart."
+                    updatemap(thestage);
+                }else{
+                    movezombies();
+                }
+            }
+        }
+
+        function calxyfrompix(pixx,pixy){
+            return [(pixx-basex)/blocksize+1, (pixy-basey)/blocksize+1];
+        }
+
+        function init() {
+            var stage = new createjs.Stage("myCanvas");
+            var x,y;
+            for(y=1;y<13;y++){
+                var temp = new createjs.Text(y.toString(),"20px Arial", "#000000");
+                temp.x = basex-25;
+                temp.y = basey+(y-1)*blocksize;
+                stage.addChild(temp);
+            }
+            for(x=1;x<13;x++){
+                var temp = new createjs.Text(x.toString(),"20px Arial", "#000000");
+                temp.y = basey-25;
+                temp.x = basex+(x-1)*blocksize;
+                stage.addChild(temp);
+            }
+
+            title = new createjs.Text("Runaway from Zombies!","30px Arial", "Red");
+            title.x = basex;title.y=basey-280;
+            stage.addChild(title);
+
+            title = new createjs.Text("You (the green block) needs to reach block(12,12) to escape!\nHowever, there are many zombies (orange) moving around!\nEach round, you can take at most randomly 1-6 steps (or just don't move).\nThe step you don't take will be stored as power.\nYou can store at most 10 power.\nYou can use 5 power to pass through a zombie.\nYou can also automatically spend 5 power to stop a zombie reaching you (it will be stoped beside your position).\nWhen the zombies find you, they will try to get you!\nIf you are caught, you are dead.\nTry to escape!","20px Arial", "black");
+            title.x = basex;title.y=basey-230;
+            stage.addChild(title);
+
+            background = new createjs.Shape();
+            background.graphics.beginStroke("red").drawRect(0,0,1920,1080);
+            stage.addChild(background);
+
+            message = new createjs.Text("Wait to start","20px Arial", "block");
+            message.x = basex+550;message.y=basey+50;
+            stage.addChild(message);
+
+            button = new createjs.Text("REstart","20px Arial", "blue");
+            button.x = basex+550;button.y=basey;
+            button.addEventListener("click", refreshmap);
+            stage.addChild(button);
+
+            // button1 = new createjs.Text("REstart(middle)","20px Arial", "blue");
+            // button1.x = basex+750;button1.y=basey;
+            // button1.addEventListener("click", (event) => {sleepspeed=750;message.text="Generating...";numzombie=15;refreshmap();});
+            // stage.addChild(button1);
+
+            // button2 = new createjs.Text("REstart(hard)","20px Arial", "blue");
+            // button2.x = basex+950;button2.y=basey;
+            // button2.addEventListener("click", (event) => {sleepspeed=500;message.text="Generating...";numzombie=20;refreshmap();});
+            // stage.addChild(button2);
+
+            for(y=1;y<13;y++){
+                for(x=1;x<13;x++){
+                    mapblocks[calind(x,y)] = new createjs.Shape();
+                    mapblocks[calind(x,y)].addEventListener("click", (event) => {
+                        var xy = calxyfrompix(event.currentTarget.graphics.command.x,event.currentTarget.graphics.command.y);
+                        playermove(xy[0],xy[1]);
+                    });
+                    stage.addChild(mapblocks[calind(x,y)]);
+                }
+            }
+            thestage = stage;
+            refreshmap();
+            // printmap();
+        }
+    </script>
+</head>
+<body onload="init();">
+    <canvas id="myCanvas" width="1920" height="1080">
+        alternate content
+    </canvas>
+</body>
+</html>
