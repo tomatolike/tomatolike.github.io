@@ -227,18 +227,18 @@ function loadplayerimgs(){
 }
 
 function loadzombieimgs(){
-    zombieimgs[UP_STAY]="../assests/hero_up_stay.png";
-    zombieimgs[UP_WALK_1]="../assests/hero_up_walk_1.png";
-    zombieimgs[UP_WALK_2]="../assests/hero_up_walk_2.png";
-    zombieimgs[DOWN_STAY]="../assests/hero_down_stay.png";
-    zombieimgs[DOWN_WALK_1]="../assests/hero_down_walk_1.png";
-    zombieimgs[DOWN_WALK_2]="../assests/hero_down_walk_2.png";
-    zombieimgs[LEFT_STAY]="../assests/hero_left_stay.png";
-    zombieimgs[LEFT_WALK_1]="../assests/hero_left_walk_1.png";
-    zombieimgs[LEFT_WALK_2]="../assests/hero_left_walk_2.png";
-    zombieimgs[RIGHT_STAY]="../assests/hero_right_stay.png";
-    zombieimgs[RIGHT_WALK_1]="../assests/hero_right_walk_1.png";
-    zombieimgs[RIGHT_WALK_2]="../assests/hero_right_walk_2.png";
+    zombieimgs[UP_STAY]="../assests/zombie_up_stay.png";
+    zombieimgs[UP_WALK_1]="../assests/zombie_up_walk_1.png";
+    zombieimgs[UP_WALK_2]="../assests/zombie_up_walk_2.png";
+    zombieimgs[DOWN_STAY]="../assests/zombie_down_stay.png";
+    zombieimgs[DOWN_WALK_1]="../assests/zombie_down_walk_1.png";
+    zombieimgs[DOWN_WALK_2]="../assests/zombie_down_walk_2.png";
+    zombieimgs[LEFT_STAY]="../assests/zombie_left_stay.png";
+    zombieimgs[LEFT_WALK_1]="../assests/zombie_left_walk_1.png";
+    zombieimgs[LEFT_WALK_2]="../assests/zombie_left_walk_2.png";
+    zombieimgs[RIGHT_STAY]="../assests/zombie_right_stay.png";
+    zombieimgs[RIGHT_WALK_1]="../assests/zombie_right_walk_1.png";
+    zombieimgs[RIGHT_WALK_2]="../assests/zombie_right_walk_2.png";
     var i=0;
     for(;i<12;i++){
         var temp = new Image();
