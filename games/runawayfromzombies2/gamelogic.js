@@ -370,6 +370,14 @@ class Game {
         return false;
     }
 
+    intosafetyrange(px, py){
+        var zbxy = pixtoblock(px,py);
+        if(zbxy[0] <= SAFERANGE && zbxy[1] <= SAFERANGE){
+            return true;
+        }
+        return false;
+    }
+
     inizombiexy(){
         var i;
         for(i=0;i<NUMZOMBIE;i++){
@@ -378,7 +386,7 @@ class Game {
                 var x = Math.floor(Math.random()*WIDTH)+1;
                 var y = Math.floor(Math.random()*HGIHT)+1;
                 var pxy = calpix(x,y);
-                if(this.moveable(pxy[0],pxy[1],ZOMBIE) && !this.intozombies(pxy[0],pxy[1],true,i) && !this.intoplayer(pxy[0],pxy[1])){
+                if(this.moveable(pxy[0],pxy[1],ZOMBIE) && !this.intozombies(pxy[0],pxy[1],true,i) && !this.intosafetyrange(pxy[0],pxy[1])){
                     this.zombies[i].px = pxy[0];
                     this.zombies[i].py = pxy[1];
                     break;
@@ -412,7 +420,7 @@ class Game {
             this.player.speed = 0;
         }
         if(!this.player.ifmoving() || this.player.slow){
-            this.player.power += PLAYER_POWER_RECOVER;
+            this.player.power += PLAYER_POWER_HIGH_RECOVER;
             if(this.player.power>PLAYER_POWER_FULL){
                 this.player.power = PLAYER_POWER_FULL;
             }
@@ -421,6 +429,11 @@ class Game {
                 this.player.power -= PLAYER_POWER_LOST;
                 if(this.player.power < 0){
                     this.player.power = 0;
+                }
+            }else{
+                this.player.power += PLAYER_POWER_RECOVER;
+                if(this.player.power>PLAYER_POWER_FULL){
+                    this.player.power = PLAYER_POWER_FULL;
                 }
             }
         }
@@ -434,18 +447,20 @@ class Game {
     notwallrange(fromxy,toxy,d){
         var nxy=fromxy;
         if(fromxy[0]==toxy[0] && fromxy[1] == toxy[1]){
-            return 1;
+            return 0;
         }
+        var counter = 0;
         while(true){
             nxy = dire(nxy[0],nxy[1],d);
             if(nxy[0]==toxy[0] && nxy[1] == toxy[1]){
                 break;
             }
+            counter+=1;
             if(!this.notwall(nxy[0],nxy[1])){
-                return 0;
+                return -1;
             }
         }
-        return 2;
+        return counter;
     }
 
     detectplayer(zombie){
@@ -456,9 +471,9 @@ class Game {
             // zombie.chasing = false;
             return false;
         }
-        if(zombie.move[d] && this.notwallrange(zbkxy,pbkxy,d) > 0){
+        if(zombie.move[d] && (this.notwallrange(zbkxy,pbkxy,d) >= 0 && this.notwallrange(zbkxy,pbkxy,d) <= 2 )){
             zombie.chasing = true;
-            if(this.notwallrange(zbkxy,pbkxy,d) == 1){
+            if(this.notwallrange(zbkxy,pbkxy,d) == 0){
                 zombie.setaim(this.player.px,this.player.py);
             }else{
                 zombie.setaim(calpix(pbkxy[0],pbkxy[1])[0],calpix(pbkxy[0],pbkxy[1])[1]);

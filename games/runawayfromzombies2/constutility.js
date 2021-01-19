@@ -19,6 +19,9 @@ const OUTMAP = 10;
 const PATH = 0;
 const WALL = 1;
 
+const SAFERANGE = 4;
+const SEENRANGE = 3;
+
 const NUMZOMBIE = 10;
 
 const KEYUP = 87;
@@ -41,10 +44,11 @@ const NORMAL_COUNTER = 8;
 const HIGH_COUNTER = 4;
 
 const PLAYER_POWER_FULL = 100;
-const PLAYER_POWER_LOST = 4;
+const PLAYER_POWER_LOST = 3;
 const PLAYER_POWER_RECOVER = 1;
+const PLAYER_POWER_HIGH_RECOVER = 2;
 
-const ZOMBIE_POWER_FULL = 100;
+const ZOMBIE_POWER_FULL = 50;
 const ZOMBIE_POWER_LOST = 4;
 const ZOMBIE_POWER_RECOVER = 1;
 
@@ -189,6 +193,14 @@ function cornerdirepx(x,y,d,type){
             return [x,y-HEROL];
         }
     }
+}
+
+function inseenrange(cx,cy,x,y){
+    // console.log(cx,cy,x,y,Math.abs(cx-x),Math.abs(cy-y))
+    if(Math.abs(cx-x) <= SEENRANGE && Math.abs(cy-y) <= SEENRANGE){
+        return true;
+    }
+    return false;
 }
 
 function pixtoblock(x, y){

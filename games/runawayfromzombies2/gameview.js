@@ -28,10 +28,10 @@ function blockcolor(x,y){
         return "#afff85";
     }
     if(value == PATH){
-        return "white";
+        return "gray";
     }
     if(value == WALL){
-        return "gray";
+        return "black";
     }
 
 }
@@ -45,14 +45,18 @@ function blockborder(x,y){
     }
 }
 
-function updatemap(){
+function updatemap(ppx,ppy){
     var x,y;
+    var pbxy = pixtoblock(ppx,ppy);
     for(y=1;y<=HGIHT;y++){
         for(x=1;x<=WIDTH;x++){
             mapblocks[calind(x,y)].graphics.clear();
-            mapblocks[calind(x,y)].graphics.beginFill(blockcolor(x,y)).drawRect(calpix(x,y)[0],calpix(x,y)[1],BLOCKSIZE,BLOCKSIZE);
-            if(blockborder(x,y)){
-                mapblocks[calind(x,y)].graphics.beginStroke("#000000");
+            if(inseenrange(pbxy[0],pbxy[1],x,y)){
+                // console.log("show block",x,y);
+                mapblocks[calind(x,y)].graphics.beginFill(blockcolor(x,y)).drawRect(calpix(x,y)[0],calpix(x,y)[1],BLOCKSIZE,BLOCKSIZE);
+                if(blockborder(x,y)){
+                    mapblocks[calind(x,y)].graphics.beginStroke("#000000");
+                }
             }
         }
     }
@@ -125,56 +129,47 @@ function frameupdate(){
     if(gamestatus == 0){
         ok = 1;
         for(i=0;i<12;i++){
-            // console.log(typeof("img",i,playerimgs[i]),playerimgs[i].complete,playerimgs[i].naturalHeight);
             if(!(playerimgs[i].complete && playerimgs[i].naturalHeight != 0)){
                 ok=0;
                 break;
             }
         }
         for(i=0;i<12;i++){
-            // console.log(typeof(zombieimgs[i]),zombieimgs[i]);
             if(!(zombieimgs[i].complete && zombieimgs[i].naturalHeight != 0)){
                 ok=0;
                 break;
             }
         }
         if(ok==1){
-            // console.log("status changed to",thegame.player.laststatus,getplayerimg(thegame.player.laststatus));
-            // player.graphics.clear().beginBitmapFill(getplayerimg(thegame.player.laststatus),"no-repeat").drawRect(thegame.player.px,thegame.player.py,HEROW,HEROL);
-            // for(i=0;i<NUMZOMBIE;i++){
-            //     zombies[i].graphics.clear().beginBitmapFill(getzombieimg(thegame.zombies[i].laststatus),"no-repeat").drawRect(thegame.zombies[i].px,thegame.zombies[i].py,ZOMBIEW,ZOMBIEL);
-            // }
             gamestatus = 1;
         }
     }
     if(gamestatus == 1){
-        // console.log("frameupdate")
         thegame.update();
-        // console.log("gameupdate")
-        
+        updatemap(thegame.player.px,thegame.player.py);
         if(thegame.player.status()){
-            // console.log("status changed to",thegame.player.laststatus,getplayerimg(thegame.player.laststatus));
             player.graphics.clear().beginBitmapFill(getplayerimg(thegame.player.laststatus),"no-repeat").drawRect(0,0,HEROW,HEROL);
             moveObjTo(player,thegame.player.px,thegame.player.py);
-            // console.log("player",thegame.player.px,thegame.player.py)
         }else{
             moveObjTo(player,thegame.player.px,thegame.player.py);
-            // console.log("player",thegame.player.px,thegame.player.py)
         }
-        // console.log("playerupdate")
         for(i=0;i<NUMZOMBIE;i++){
+            var pbxy = pixtoblock(thegame.player.px,thegame.player.py);
+            var zbxy = pixtoblock(thegame.zombies[i].px,thegame.zombies[i].py);
             if(thegame.zombies[i].status()){
-                // console.log("status changed to",thegame.player.laststatus,getplayerimg(thegame.player.laststatus));
-                zombies[i].graphics.clear().beginBitmapFill(getzombieimg(thegame.zombies[i].laststatus),"no-repeat").drawRect(0,0,ZOMBIEW,ZOMBIEL);
+                zombies[i].graphics.clear();
+                if(inseenrange(pbxy[0],pbxy[1],zbxy[0],zbxy[1])){
+                    zombies[i].graphics.beginBitmapFill(getzombieimg(thegame.zombies[i].laststatus),"no-repeat").drawRect(0,0,ZOMBIEW,ZOMBIEL);
+                }
                 moveObjTo(zombies[i],thegame.zombies[i].px,thegame.zombies[i].py);
-                // console.log("zombie",i,thegame.zombies[i].px,thegame.zombies[i].py)
             }else{
                 moveObjTo(zombies[i],thegame.zombies[i].px,thegame.zombies[i].py);
-                // console.log("zombie",i,thegame.zombies[i].px,thegame.zombies[i].py)
+                if(!inseenrange(pbxy[0],pbxy[1],zbxy[0],zbxy[1])){
+                    zombies[i].graphics.clear();
+                }
             }
         }
-        playerpowerbar.graphics.clear().beginFill("blue").drawRect(INFOBASEX+100,INFOBASEY+12,(120/PLAYER_POWER_FULL)*thegame.player.power,10);
-        // console.log("zombieupdate")
+        playerpowerbar.graphics.clear().beginFill("blue").drawRect(INFOBASEX+100,INFOBASEY+62,(120/PLAYER_POWER_FULL)*thegame.player.power,10);
         messagelabel.text = thegame.message;
         if(thegame.status != ONGOING){
             gamestatus = 2;
@@ -182,19 +177,30 @@ function frameupdate(){
     }
 }
 
+function restart_game(){
+    gamestatus = 0;
+    delete thegame;
+    thegame = new Game();
+}
+
 function setupinfobox(){
-    var playerpowerbarlabel = new createjs.Text("Your power:","15px Arial", "#000000");
+    var playerpowerbarlabel = new createjs.Text("Your power:","15px Arial", "red");
     playerpowerbarlabel.x = INFOBASEX+10;
-    playerpowerbarlabel.y = INFOBASEY+10;
+    playerpowerbarlabel.y = INFOBASEY+60;
     thestage.addChild(playerpowerbarlabel);
 
     playerpowerbar = new createjs.Shape();
     thestage.addChild(playerpowerbar);
 
-    messagelabel = new createjs.Text(thegame.message,"15px Arial", "#000000");
+    messagelabel = new createjs.Text(thegame.message,"15px Arial", "red");
     messagelabel.x = INFOBASEX+10;
-    messagelabel.y = INFOBASEY+30;
+    messagelabel.y = INFOBASEY+80;
     thestage.addChild(messagelabel);
+
+    var newbutton = new Button("REstart",80,40,restart_game);
+    newbutton.button.x = INFOBASEX+10;
+    newbutton.button.y = INFOBASEY+10;
+    thestage.addChild(newbutton.button);
 }
 
 function loadplayerimgs(){
@@ -252,23 +258,23 @@ function init(){
     var onegame = new Game();
     thegame = onegame;
 
-    var title = new createjs.Text("Runaway from Zombies!","30px Arial", "Red");
-    title.x = BASEX;title.y=BASEY-140;
-    stage.addChild(title);
-
-    var instra = new createjs.Text("You needs to reach the safty exit (green block) to escape!\nHowever, there are many zombies moving around!\nControl: 'W' up, 'S' down, 'A' left, 'D' right, 'Shift' slow walk, 'Space' run","20px Arial", "black");
-    instra.x = BASEX;instra.y=BASEY-100;
-    stage.addChild(instra);
-
     // Setup the page border
     var background = new createjs.Shape();
-    background.graphics.beginStroke("red").drawRect(0,0,1200,900);
+    background.graphics.beginStroke("#302e2e").beginFill("#302e2e").drawRect(0,0,1200,900);
     stage.addChild(background);
 
     // Setup the info box
     var infobox = new createjs.Shape();
-    infobox.graphics.beginStroke("red").drawRect(INFOBASEX,INFOBASEY,300,(HGIHT-2)*BLOCKSIZE);
+    infobox.graphics.beginStroke("red").beginFill("#424242").drawRect(INFOBASEX,INFOBASEY,300,(HGIHT-2)*BLOCKSIZE);
     stage.addChild(infobox);
+
+    var title = new createjs.Text("Runaway from Zombies!","30px Arial", "red");
+    title.x = BASEX;title.y=BASEY-140;
+    stage.addChild(title);
+
+    var instra = new createjs.Text("You needs to reach the safty exit (green block) to escape!\nHowever, there are many zombies moving around!\nControl: 'W' up, 'S' down, 'A' left, 'D' right, 'Shift' slow walk, 'Space' run","20px Arial", "red");
+    instra.x = BASEX;instra.y=BASEY-100;
+    stage.addChild(instra);
 
     setupinfobox();
 
@@ -284,8 +290,6 @@ function init(){
             stage.addChild(mapblocks[calind(x,y)]);
         }
     }
-
-    updatemap();
 
     // Add X Y axil to the map, will delete later
     for(y=1;y<13;y++){
